@@ -32,8 +32,6 @@ class MainController {
 
         $controller = FileSystem::getModuleController($this->module_name);
         if ($controller) {
-            require_once $controller;
-
             if (class_exists($this->module_name)) {
                 $this->module = new $this->module_name($this->db, $this->uri_rest);
 

@@ -29,4 +29,13 @@ class FileSystem {
         return $file;
     }
 
+    public static function getModuleModel($module) {
+        $file = self::getModulePath($module) . '/' . strtolower($module) . 'model.php';
+
+        if (!file_exists($file))
+            $file = null;
+
+        return $file;
+    }
+
 }
