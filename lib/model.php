@@ -23,14 +23,13 @@ class Model {
     protected $__model, $__db, $__name;
     private $__id;
 
-    function __construct($model, $db) {
-        $this->__model = $model;
+    function __construct($db) {
         $this->__db = $db;
-        $this->createModel($model);
+        $this->createModel();
     }
 
-    public function createModel($model) {
-        foreach($model as $var=>$val)
+    public function createModel() {
+        foreach($this->__model as $var=>$val)
             $this->$var = null;
     }
 
@@ -39,14 +38,14 @@ class Model {
             return $this->$var;
 
         else
-            throw new Exception("Property does not exists under model");
+            throw new Exception("Property does not exists under model", 20);
     }
 
     public function setProp($var, $value) {
         if (property_exists($this, $var)) {
             $attrib_list = $this->__model[$var];
             if (!in_array('null', $attrib_list) && $value == null)
-                throw new Exception('Type is not coherent: cannot be NULL');
+                throw new Exception('Type is not coherent: cannot be NULL', 21);
 
             $type = array_shift($attrib_list);
 
@@ -66,11 +65,11 @@ class Model {
                 }
 
                 if (!filter_var($value, FILTER_VALIDATE_INT, $options))
-                    throw new Exception("Type is not coherent: INT");
+                    throw new Exception("Type is not coherent: INT", 22);
             }
 
             else if (($type == Model::TYPE_FLOAT) && !filter_var($value, FILTER_VALIDATE_FLOAT))
-                throw new Exception("Type is not coherent : FLOAT");
+                throw new Exception("Type is not coherent : FLOAT", 23);
 
             else if ($type == Model::TYPE_STRING) {
                 $options = array();
@@ -82,7 +81,7 @@ class Model {
 
                     if (($p == 'min') && is_numeric($v)) {
                         if (strlen($value) < $v)
-                            throw new Exception("Type is not coherent: STRING minimum lenght is " . $v);
+                            throw new Exception("Type is not coherent: STRING minimum lenght is " . $v, 24);
                     }
 
                     else if (($p == 'max') && is_numeric($v)) {
@@ -103,28 +102,48 @@ class Model {
     }
 
     public function findById($id) {
-//public function select($table, $fields = '*', $where = null, $limit = null, $order = null, $offset = null)
         if (is_numeric($id)) {
             $r = $this->__db->select($this->__name, '*', 'id = ' . $id, 1);
 
             if (empty($r))
-                throw new Exception('No data found by id ' . $id);
+                throw new Exception('No data found by id ' . $id, 25);
 
-            else
+            else {
+                $this->__id = $id;
                 return $r;
+            }
         }
 
         else
-            throw new Exception('ID must be numeric');
+            throw new Exception('ID must be numeric', 26);
     }
 
-    public function insert($obj = null) {
-        if (!$obj)
-            $obj = $this;
+    public function insert() {
+        $data = array();
+
+        // data must be set through setProp, so we trust it's coherent
+        // unless no data was inserted, in which case...
+        foreach ($this->__model as $param=>$attrib_list) {
+            if (!in_array("null", $attrib_list) && empty($this->$param))
+                throw new Exception('Property cannot be null: ' . $param, 27);
+
+            $data[$param] = $this->$param;
+        }
+
+        $r = $this->__db->insert($this->__name, $data);
+
+        if (!$r)
+            throw new Exception('Error inserting the new item', 28);
     }
 
     public function delete($id = null) {
+        // can delete only if id is provided
+        // or if findById was called successfully
+        if (!$id && $this->__id)
+            $id = $this->__id;
 
+        if ($id)
+            $this->__db->delete($this->__name, $id);
     }
 
     public function merge() {
@@ -133,5 +152,9 @@ class Model {
 
     public function setModelName($name) {
         $this->__name = $name;
+    }
+
+    public function getId() {
+        return $this->__id;
     }
 }

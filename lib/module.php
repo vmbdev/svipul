@@ -12,10 +12,11 @@ abstract class Module {
         if (isset($this->content_vars) && is_array($this->content_vars))
             $this->setContentVars($this->content_vars);
 
-        if (isset($this->model) && is_array($this->model))
-            $this->model = new Model($this->model, $db);
+        $modelclass = get_class($this) . 'Model';
+        if (class_exists($modelclass)) {
+            $this->model = new $modelclass($db);
             $this->model->setModelName(get_class($this));
-
+        }
         $this->startController();
 	}
 
@@ -53,22 +54,22 @@ abstract class Module {
                 $this->action = 'default';
 
             else
-                throw new Exception('Controller Exception: Action does not exists');
+                throw new Exception('Controller Exception: Action does not exists', 10);
         }
 
         $route = $this->router->getRoute($this->action);
         if (empty($route))
-            throw new Exception('Controller Exception: Action not in route');
+            throw new Exception('Controller Exception: Action not in route', 11);
 
         // check if the function exists
         $this->function = $route['function'];
         if (!method_exists($this, $this->function))
-            throw new Exception('Controller Exception: Function does not exists');
+            throw new Exception('Controller Exception: Function does not exists', 12);
 
         // pass the viewer back to the dispatcher
         $this->view = FileSystem::getModuleView(get_class($this), $route['view']);
         if (!$this->view)
-            throw new Exception('Controller Exception: View does not exists');
+            throw new Exception('Controller Exception: View does not exists', 13);
     }
 
     public function getFunction() {

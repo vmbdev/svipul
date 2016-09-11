@@ -1,6 +1,6 @@
 <?php
 
-class MySQLDatabase extends Database {
+class MySQLDriver extends Database {
 
 	function __construct($host, $db, $user, $password) {
 		if (!isset($conn)) {
@@ -75,10 +75,18 @@ class MySQLDatabase extends Database {
         return $this->modify($q, $values);
     }
 
-    public function delete($table, $where = null) {
-        $q = 'DELETE FROM ' . $table . ($where ? ' WHERE ' . $where : '');
+    public function delete($table, $id = null, $where = null) {
+        if ($id) {
+            $cond = ' WHERE id = ' . $id;
+            if ($where)
+                $cond .= ' AND ' . $where;
+        }
+        else if ($where)
+            $cond = ' WHERE ' . $where;
 
-        return $this->modify($q, $values);
+        $q = 'DELETE FROM ' . $table . ($cond ? $cond : '');
+
+        return $this->modify($q);
     }
 
     public function getLastId() {
