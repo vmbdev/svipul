@@ -19,6 +19,7 @@ class Model {
     const TYPE_STRING = 2;
     const TYPE_TEXT = 3;
     const TYPE_DATE = 4;
+    const TYPE_FOREIGNKEY = 5;
 
     protected $__model, $__db, $__name;
     private $__id;
@@ -29,8 +30,19 @@ class Model {
     }
 
     public function createModel() {
-        foreach($this->__model as $var=>$val)
-            $this->$var = null;
+        foreach($this->__model as $property => $attrib_list) {
+            if (current($attrib_list) == Model::TYPE_FOREIGNKEY) {
+                $foreignclass = next($attrib_list);
+
+                if (class_exists($foreignclass))
+                    $this->$property = new $foreignclass($this->__db);
+                else
+                    throw new Exception("Foreign key points to a non existing class: " . $foreignclass);
+            }
+
+            else
+                $this->$property = null;
+        }
     }
 
     public function getProp($var) {
@@ -44,6 +56,7 @@ class Model {
     public function setProp($var, $value) {
         if (property_exists($this, $var)) {
             $attrib_list = $this->__model[$var];
+
             if (!in_array('null', $attrib_list) && $value == null)
                 throw new Exception('Type is not coherent: cannot be NULL', 21);
 
@@ -97,6 +110,15 @@ class Model {
                 $value = $date->format('Y-m-d H:i:s');
             }
 
+            else if ($type == Model::TYPE_FOREIGNKEY) {
+                $foreignclass = current($attrib_list);
+
+                if (class_exists($foreignclass))
+                    $value = new $foreignclass($this->__db);
+                else
+                    throw new Exception("Foreign key points to a non existing class: " . $foreignclass);
+            }
+
             $this->$var = $value;
         }
     }
@@ -123,11 +145,11 @@ class Model {
 
         // data must be set through setProp, so we trust it's coherent
         // unless no data was inserted, in which case...
-        foreach ($this->__model as $param=>$attrib_list) {
-            if (!in_array("null", $attrib_list) && empty($this->$param))
-                throw new Exception('Property cannot be null: ' . $param, 27);
+        foreach ($this->__model as $property => $attrib_list) {
+            if (!in_array("null", $attrib_list) && empty($this->$property))
+                throw new Exception('Property cannot be null: ' . $property, 27);
 
-            $data[$param] = $this->$param;
+            $data[$property] = $this->$property;
         }
 
         $r = $this->__db->insert($this->__name, $data);
@@ -147,7 +169,21 @@ class Model {
     }
 
     public function merge() {
+        $data = array();
 
+        // data must be set through setProp, so we trust it's coherent
+        // unless no data was inserted, in which case...
+        foreach ($this->__model as $property => $attrib_list) {
+            if (!in_array("null", $attrib_list) && empty($this->$property))
+                throw new Exception('Property cannot be null: ' . $property, 27);
+
+            $data[$property] = $this->$property;
+        }
+
+        $r = $this->__db->update($this->__name, $data);
+
+        if (!$r)
+            throw new Exception('Error updating this item', 29);
     }
 
     public function setModelName($name) {
