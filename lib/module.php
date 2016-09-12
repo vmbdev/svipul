@@ -17,7 +17,6 @@ abstract class Module {
             $this->model = new $modelclass($db);
             $this->model->setModelName(get_class($this));
         }
-        $this->startController();
 	}
 
 	abstract public function run();
@@ -58,6 +57,7 @@ abstract class Module {
         }
 
         $route = $this->router->getRoute($this->action);
+
         if (empty($route))
             throw new Exception('Controller Exception: Action not in route', 11);
 

@@ -36,6 +36,7 @@ class MainController {
                 $this->module = new $this->module_name($this->db, $this->uri_rest);
 
                 if (is_subclass_of($this->module, 'Module')) {
+                    $this->module->startController();
                     $function = $this->module->getFunction();
                     $this->module->$function();
                     $this->has_controller = true;
