@@ -12,7 +12,7 @@ class FileSystem {
     }
 
     public static function getModuleController($module) {
-        $file = self::getModulePath($module) . '/' . $module . '.php';
+        $file = self::getModulePath($module) . '/' . $module . 'controller.php';
 
         if (!file_exists($file))
             $file = null;
@@ -30,12 +30,11 @@ class FileSystem {
     }
 
     public static function getModuleModel($module) {
-        $file = self::getModulePath($module) . '/' . strtolower($module) . 'model.php';
+        $file = self::getModulePath($module) . '/' . strtolower($module) . '.php';
 
         if (!file_exists($file))
             $file = null;
 
         return $file;
     }
-
 }
