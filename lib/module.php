@@ -12,11 +12,9 @@ abstract class Module {
         if (isset($this->content_vars) && is_array($this->content_vars))
             $this->setContentVars($this->content_vars);
 
-        $modelclass = get_class($this) . 'Model';
-        if (class_exists($modelclass)) {
+        $modelclass = $this->getModuleName();
+        if (class_exists($modelclass))
             $this->model = new $modelclass($db);
-            $this->model->setModelName(get_class($this));
-        }
 	}
 
 	abstract public function run();
@@ -67,7 +65,7 @@ abstract class Module {
             throw new Exception('Controller Exception: Function does not exists', 12);
 
         // pass the viewer back to the dispatcher
-        $this->view = FileSystem::getModuleView(get_class($this), $route['view']);
+        $this->view = FileSystem::getModuleView($this->getModuleName(), $route['view']);
         if (!$this->view)
             throw new Exception('Controller Exception: View does not exists', 13);
     }
@@ -86,6 +84,10 @@ abstract class Module {
 
     public function getModel() {
         return $this->model;
+    }
+
+    public function getModuleName() {
+        return substr(get_class($this), 0, -strlen('Controller'));
     }
 
     public function setContentVars($vars) {

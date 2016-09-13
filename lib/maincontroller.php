@@ -19,7 +19,7 @@ class MainController {
         $module_name = strtolower($uri_match);
 
         // does the module exists in the filesystem? if not, use the default one
-        if (FileSystem::getModulePath($module_name))
+        if (!empty($module_name) && FileSystem::getModulePath($module_name))
             $this->module_name = $module_name;
 
         else
@@ -32,8 +32,9 @@ class MainController {
 
         $controller = FileSystem::getModuleController($this->module_name);
         if ($controller) {
-            if (class_exists($this->module_name)) {
-                $this->module = new $this->module_name($this->db, $this->uri_rest);
+            $controller_name = $this->module_name . 'Controller';
+            if (class_exists($controller_name)) {
+                $this->module = new $controller_name($this->db, $this->uri_rest);
 
                 if (is_subclass_of($this->module, 'Module')) {
                     $this->module->startController();

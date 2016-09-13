@@ -41,14 +41,15 @@ spl_autoload_register(function($class) {
             include_once('lib/dbdrivers/' . $classname . '.php');
     }
 
-    else if (FileSystem::getModuleController($class))
-        include_once(FileSystem::getModuleController($class));
-
-    else if (endsWith($class, 'Model')) {
-        $classname = substr($class, 0, -strlen('Model'));
-        if (FileSystem::getModuleModel($classname))
-            include_once(FileSystem::getModuleModel($classname));
+    else if (endsWith($class, 'Controller')) {
+        $classname = substr($class, 0, -strlen('Controller'));
+        if (FileSystem::getModuleController($classname))
+            include_once(FileSystem::getModuleController($classname));
     }
+
+    else if (FileSystem::getModuleModel($class))
+        include_once(FileSystem::getModuleModel($class));
+
 });
 
 // db init

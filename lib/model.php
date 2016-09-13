@@ -21,11 +21,12 @@ class Model {
     const TYPE_DATE = 4;
     const TYPE_FOREIGNKEY = 5;
 
-    protected $__model, $__db, $__name;
+    protected $__model, $__db;
     private $__id;
 
     function __construct($db) {
         $this->__db = $db;
+        $this->__fklist = array();
         $this->createModel();
     }
 
@@ -34,8 +35,10 @@ class Model {
             if (current($attrib_list) == Model::TYPE_FOREIGNKEY) {
                 $foreignclass = next($attrib_list);
 
-                if (class_exists($foreignclass))
+                if (class_exists($foreignclass)) {
                     $this->$property = new $foreignclass($this->__db);
+                    $this->__fklist[$property] = $foreignclass;
+                }
                 else
                     throw new Exception("Foreign key points to a non existing class: " . $foreignclass);
             }
@@ -125,19 +128,42 @@ class Model {
 
     public function findById($id) {
         if (is_numeric($id)) {
-            $r = $this->__db->select($this->__name, '*', 'id = ' . $id, 1);
+            $r = $this->__db->select(get_class($this), '*', 'id = ' . $id, 1);
 
             if (empty($r))
                 throw new Exception('No data found by id ' . $id, 25);
 
             else {
                 $this->__id = $id;
-                return $r;
+
+                foreach ($r as $property => $value) {
+                    if (array_key_exists($property, $this->__model) && (reset($this->__model[$property]) != Model::TYPE_FOREIGNKEY))
+                    $this->$property = $value;
+                }
+
+                // fetch the tables referenced as foreign key
+                foreach ($this->__fklist as $reference => $fk) {
+                    $this->$reference = new $fk($this->__db);
+                    $this->$reference->findById($r[$reference]);
+                }
+
             }
         }
 
         else
             throw new Exception('ID must be numeric', 26);
+    }
+
+    public function exists($id) {
+        $class = get_class($this);
+        $n = new $class($this->__db);
+
+        try {
+            $n->findById($id);
+            return true;
+        } catch (Exception $e) {
+            return false;
+        }
     }
 
     public function insert() {
@@ -149,10 +175,19 @@ class Model {
             if (!in_array("null", $attrib_list) && empty($this->$property))
                 throw new Exception('Property cannot be null: ' . $property, 27);
 
-            $data[$property] = $this->$property;
+            if (reset($this->__model[$property]) != Model::TYPE_FOREIGNKEY)
+                $data[$property] = $this->$property;
+
+            // fetch the tables referenced as foreign key
+            foreach ($this->__fklist as $reference => $fk) {
+                if (!$this->$reference->exists($this->$reference->getId()))
+                    $this->$reference->insert();
+                else
+                    $this->$reference->merge();
+            }
         }
 
-        $r = $this->__db->insert($this->__name, $data);
+        $r = $this->__db->insert(get_class($this), $data);
 
         if (!$r)
             throw new Exception('Error inserting the new item', 28);
@@ -165,7 +200,7 @@ class Model {
             $id = $this->__id;
 
         if ($id)
-            $this->__db->delete($this->__name, $id);
+            $this->__db->delete(get_class($this), $id);
     }
 
     public function merge() {
@@ -180,14 +215,10 @@ class Model {
             $data[$property] = $this->$property;
         }
 
-        $r = $this->__db->update($this->__name, $data);
+        $r = $this->__db->update(get_class($this), $data, 'id=' . $this->__id);
 
         if (!$r)
             throw new Exception('Error updating this item', 29);
-    }
-
-    public function setModelName($name) {
-        $this->__name = $name;
     }
 
     public function getId() {
