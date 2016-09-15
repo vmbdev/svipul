@@ -6,6 +6,7 @@ class NewsController extends Module {
 
         $this->router->addRoute('get', 'getf', 'getv');
     }
+
     public function run() {
         dope("hei");
         $this->model->setProp('number', 250);
@@ -14,6 +15,8 @@ class NewsController extends Module {
         $this->model->getProp('author')->setProp('name', 'boboob');
         $this->model->getProp('author')->setProp('surname', 'llalala');
 
+        $this->model->findById(20);
+        $this->model->getProp('author')->setProp('name', 'picha brava');
         //dope($this->model);
         $this->model->insert();
 

@@ -65,13 +65,13 @@ class MySQLDriver extends Database {
         $set = array();
         $values = array_values($data);
 
-        foreach ($data as $column)
+        foreach (array_keys($data) as $column)
             $set[] = $column . '=?';
 
         $set = implode(',', $set);
 
         $q = 'UPDATE ' . $table . ' SET ' . $set . ($where ? ' WHERE ' . $where : '');
-
+        dope($q);
         return $this->modify($q, $values);
     }
 
@@ -90,7 +90,7 @@ class MySQLDriver extends Database {
     }
 
     public function getLastId() {
-        return $conn->lastInsertId();
+        return $this->conn->lastInsertId();
     }
 
 }

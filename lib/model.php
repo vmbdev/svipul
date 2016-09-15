@@ -48,17 +48,17 @@ class Model {
         }
     }
 
-    public function getProp($var) {
-        if (isset($this->$var))
-            return $this->$var;
+    public function getProp($prop) {
+        if (isset($this->$prop))
+            return $this->$prop;
 
         else
             throw new Exception("Property does not exists under model", 20);
     }
 
-    public function setProp($var, $value) {
-        if (property_exists($this, $var)) {
-            $attrib_list = $this->__model[$var];
+    public function setProp($prop, $value) {
+        if (property_exists($this, $prop)) {
+            $attrib_list = $this->__model[$prop];
 
             if (!in_array('null', $attrib_list) && $value == null)
                 throw new Exception('Type is not coherent: cannot be NULL', 21);
@@ -69,9 +69,10 @@ class Model {
                 $options = array();
 
                 foreach ($attrib_list as $attrib) {
+                    // keys in the format of param: value
                     $pv = explode(":", $attrib);
-                    $p = current($pv);
-                    $v = next($pv);
+                    $p = current($pv); // the param
+                    $v = next($pv); // the value
 
                     if (($p == 'min') && is_numeric($v))
                         $options['options']['min_range'] = $v;
@@ -122,7 +123,7 @@ class Model {
                     throw new Exception("Foreign key points to a non existing class: " . $foreignclass);
             }
 
-            $this->$var = $value;
+            $this->$prop = $value;
         }
     }
 
@@ -168,6 +169,20 @@ class Model {
 
     public function insert() {
         $data = array();
+        $fkinserted = array();
+
+        // fetch the tables referenced as foreign key
+        // we insert this objects before to get their id
+        foreach ($this->__fklist as $reference => $fk) {
+            if (!$this->$reference->exists($this->$reference->getId())) {
+                $this->$reference->insert();
+                $fkinserted[$reference] = $this->__db->getLastId();
+            }
+            else {
+                $this->$reference->merge();
+                $fkinserted[$reference] = $this->$reference->getId();
+            }
+        }
 
         // data must be set through setProp, so we trust it's coherent
         // unless no data was inserted, in which case...
@@ -178,13 +193,9 @@ class Model {
             if (reset($this->__model[$property]) != Model::TYPE_FOREIGNKEY)
                 $data[$property] = $this->$property;
 
-            // fetch the tables referenced as foreign key
-            foreach ($this->__fklist as $reference => $fk) {
-                if (!$this->$reference->exists($this->$reference->getId()))
-                    $this->$reference->insert();
-                else
-                    $this->$reference->merge();
-            }
+            // if it's a foreign key, we have the id from the previous loop
+            else
+                $data[$property] = $fkinserted[$reference];
         }
 
         $r = $this->__db->insert(get_class($this), $data);
@@ -201,6 +212,9 @@ class Model {
 
         if ($id)
             $this->__db->delete(get_class($this), $id);
+
+        else
+            throw new Exception('No id specified', 210);
     }
 
     public function merge() {
@@ -215,7 +229,7 @@ class Model {
             $data[$property] = $this->$property;
         }
 
-        $r = $this->__db->update(get_class($this), $data, 'id=' . $this->__id);
+        $r = $this->__db->update(get_class($this), $data, 'id = ' . $this->__id);
 
         if (!$r)
             throw new Exception('Error updating this item', 29);
