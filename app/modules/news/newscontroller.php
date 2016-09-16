@@ -8,17 +8,16 @@ class NewsController extends Module {
     }
 
     public function run() {
-        dope("hei");
         $this->model->setProp('number', 250);
         $this->model->setProp('title', "test 4");
         $this->model->setProp('date', '01/20/2020 12:13:14');
         $this->model->getProp('author')->setProp('name', 'boboob');
         $this->model->getProp('author')->setProp('surname', 'llalala');
 
-        $this->model->findById(20);
-        $this->model->getProp('author')->setProp('name', 'picha brava');
+        $this->model->findById(1);
+        $this->model->getProp('author')->setProp('name', 'superman');
         //dope($this->model);
-        $this->model->insert();
+        //$this->model->insert();
 
     }
 

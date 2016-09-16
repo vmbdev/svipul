@@ -29,7 +29,6 @@ class Session extends Model {
 	function createSessionData() {
         try {
             $this->find('hash = ' . $this->__db->quote($this->hash));
-
             $this->last_use = $this->__db->now();
             $this->merge('hash = ' . $this->__db->quote($this->hash));
 
@@ -39,7 +38,7 @@ class Session extends Model {
 
             $this->insert();
         } finally {
-    		$this->sessionExists = true;
+    		    $this->sessionExists = true;
         }
 	}
 
@@ -50,4 +49,8 @@ class Session extends Model {
             return;
         }
 	}
+
+    function getSessionLang() {
+        return $this->lang;
+    }
 }
