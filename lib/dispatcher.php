@@ -1,6 +1,6 @@
 <?php
 
-class MainController {
+class Dispatcher {
     private $db, $module_name, $module, $uri_rest;
     private $content; // vwr
     private $has_controller; // module is not static
@@ -62,21 +62,29 @@ class MainController {
     }
 
     private function runViewer() {
-        /*
-        $modulePath = $this->dirroot . '/themes/' . $this->theme . '/templates/' . $this->mod . '/' . $this->module;
-        if (!empty($this->content))
-            extract($this->content);
+        $view = $this->module->getView();
+        if (empty($view))
+            throw new Exception('No view associated to this action.', 300);
 
-        // print the vwr
-        ob_start();
-        require_once $modulePath . '/index.php';
-        $templateContent = ob_get_clean();
+        else {
+            if (!empty($this->content))
+                extract($this->content);
 
-        if ($this->hasController && $this->module->useCustomLayout())
-            require_once $modulePath . '/layout.php';
+            // module has custom layout ?
+            if ($this->module->getLayout())
+                $layout = $this->module->getLayout();
+            else if (FileSystem::getGlobalLayout())
+                $layout = FileSystem::getGlobalLayout();
+            else
+                $layout = null;
 
-        else
-            require_once $this->dirroot . '/themes/' . $this->theme . '/templates/layout.php';
-            */
+            ob_start();
+            require_once($view);;
+            $view_content = ob_get_clean();
+
+            if ($layout)
+                require_once($layout);
+
+        }
     }
 }

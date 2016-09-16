@@ -1,1 +1,1 @@
-<strong>hello there</strong>
+<strong>default view !</strong>

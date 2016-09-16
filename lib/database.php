@@ -22,4 +22,5 @@ abstract class Database {
 
     // others
     abstract public function getLastId();
+    abstract public function quote($string);
 }
