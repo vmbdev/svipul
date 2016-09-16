@@ -1,90 +1,53 @@
 <?php
 
-class Session {
-	private static $db;
-	private static $lang = null;
-	private static $isLogged = false;
-	private static $sessionExists = false;
-	private static $user;
+class Session extends Model {
+    protected $__model = [
+        'hash' => [ Model::TYPE_STRING, 'min: 128', 'max: 128'],
+        'last_use' => [ Model::TYPE_DATE, 'null' ],
+        'lang' => [ Model::TYPE_STRING, 'max: 5']
+    ];
 
-	function __construct($db) {
-		self::$db = $db;
+    function __construct($db) {
+        if (class_exists('User') && is_subclass_of('User', 'Model'))
+            $this->__model['user'] = [ Model::TYPE_FOREIGNKEY, 'user', 'null' ];
+
+        parent::__construct($db);
 	}
 
-	function startSession($lang=null) {
+	function startSession($lang = null) {
 		session_start();
 
-		if ($lang && array_key_exists($lang, Config::$languages))
-			self::$lang = $lang;
+        $this->hash = session_id();
+        $this->user = null;
 
-		self::createSessionData();
+		if ($lang && array_key_exists($lang, Config::$languages))
+			$this->lang = $lang;
+
+		$this->createSessionData();
 	}
 
 	function createSessionData() {
-		if (isset($_GET['lang']) && array_key_exists($_GET['lang'], Config::$languages))
-			self::$lang = $_GET['lang'];
+        try {
+            $this->find('hash = ' . $this->__db->quote($this->hash));
 
-		$q = 'SELECT lang FROM sessions WHERE id = ? LIMIT 1';
-		$session = self::$db->query($q, array(session_id()));
+            $this->last_use = $this->__db->now();
+            $this->merge('hash = ' . $this->__db->quote($this->hash));
 
-		if (empty($session)) {
-			if (!self::$lang)
-				self::$lang = Config::$defaultLanguage;
+        } catch (Exception $e) {
+            if (!$this->lang)
+                $this->lang = Config::$defaultLanguage;
 
-			$q = 'INSERT INTO sessions (id, lang) VALUES (?, ?)';
-			self::$db->query($q, array(session_id(), self::$lang));
-		}
-
-		else {
-// TODO: plug the users
-/*
-            if ($session['user']) {
-				$q = 'SELECT firstname, surname, email, type, birthday FROM users WHERE id = ? LIMIT 1';
-				$usr = self::$db->query($q, array($session['user']));
-
-				self::$user = new User($session['user'], $usr['email'], $usr['firstname'], $usr['surname'], $usr['type'], $usr['birthday']);
-				self::$isLogged = true;
-			}
-*/
-			if (!self::$lang)
-				self::$lang = $session['lang'];
-
-			$sql = 'UPDATE sessions SET last_use = NOW(), lang = ? WHERE id = ? LIMIT 1';
-			self::$db->query($sql, array(self::$lang, session_id()));
-		}
-
-		self::$sessionExists = true;
-	}
-
-	function sessionExists() {
-		return self::$sessionExists;
-	}
-
-	function getSessionLang() {
-		$sql = 'SELECT lang FROM sessions WHERE id = ? LIMIT 1';
-		$session = self::$db->query($sql, array(session_id()));
-
-		return $session['lang'];
-	}
-
-	function getLang() {
-		return self::$lang;
-	}
-
-	function isLogged() {
-		return self::$isLogged;
-	}
-
-	function loginUser($id) {
-		self::$user = $id;
-		$sql = 'UPDATE sessions SET user = ? WHERE id = ? LIMIT 1';
-		self::$db->query($sql, array($id, session_id()));
+            $this->insert();
+        } finally {
+    		$this->sessionExists = true;
+        }
 	}
 
 	function closeSession() {
-		if (self::sessionExists()) {
-			$q = 'DELETE FROM sessions WHERE id = ?';
-			self::$db->query($q, array(session_id()));
-		}
+        try {
+            $this->delete();
+        } catch(Exception $e) {
+            return;
+        }
 	}
 }

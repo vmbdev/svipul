@@ -127,28 +127,40 @@ class Model {
         }
     }
 
-    public function findById($id) {
-        if (is_numeric($id)) {
-            $r = $this->__db->select(get_class($this), '*', 'id = ' . $id, 1);
+    public function find($cond = null) {
+        $r = $this->__db->select(get_class($this), '*', $cond, 1);
 
-            if (empty($r))
-                throw new Exception('No data found by id ' . $id, 25);
+        if (empty($r))
+            throw new Exception('No data found', 25);
 
-            else {
-                $this->__id = $id;
-
-                foreach ($r as $property => $value) {
-                    if (array_key_exists($property, $this->__model) && (reset($this->__model[$property]) != Model::TYPE_FOREIGNKEY))
+        else {
+            foreach ($r as $property => $value) {
+                if (array_key_exists($property, $this->__model) && (reset($this->__model[$property]) != Model::TYPE_FOREIGNKEY))
                     $this->$property = $value;
-                }
+            }
 
-                // fetch the tables referenced as foreign key
-                foreach ($this->__fklist as $reference => $fk) {
+            // fetch the tables referenced as foreign key
+            foreach ($this->__fklist as $reference => $fk) {
+                if ($r[$reference] != null) {
                     $this->$reference = new $fk($this->__db);
                     $this->$reference->findById($r[$reference]);
                 }
-
             }
+
+            $this->__id = $r['id'];
+        }
+    }
+
+    public function findById($id) {
+        if (is_numeric($id)) {
+            try {
+                $r = $this->find('id = ' . $id);
+                $this->__id = $id;
+            } catch (Exception $e) {
+                throw new Exception('No data found by id ' . $id, 211);
+            }
+
+            return $r;
         }
 
         else
@@ -174,18 +186,23 @@ class Model {
         // fetch the tables referenced as foreign key
         // we insert this objects before to get their id
         foreach ($this->__fklist as $reference => $fk) {
-            if (!$this->$reference->exists($this->$reference->getId())) {
-                $this->$reference->insert();
-                $fkinserted[$reference] = $this->__db->getLastId();
-            }
-            else {
-                $this->$reference->merge();
-                $fkinserted[$reference] = $this->$reference->getId();
+            if ($this->$reference != null) {
+                if (!$this->$reference->exists($this->$reference->getId())) {
+                    $this->$reference->insert();
+                    $fkinserted[$reference] = $this->__db->getLastId();
+                }
+                else {
+                    $this->$reference->merge();
+                    $fkinserted[$reference] = $this->$reference->getId();
+                }
+
+                $data[$reference] = $this->$reference->getId();
             }
         }
 
         // data must be set through setProp, so we trust it's coherent
         // unless no data was inserted, in which case...
+
         foreach ($this->__model as $property => $attrib_list) {
             if (!in_array("null", $attrib_list) && empty($this->$property))
                 throw new Exception('Property cannot be null: ' . $property, 27);
@@ -194,9 +211,18 @@ class Model {
                 $data[$property] = $this->$property;
 
             // if it's a foreign key, we have the id from the previous loop
-            else
-                $data[$property] = $fkinserted[$reference];
+            else {
+                if (array_key_exists($property, $data)) {
+                    $fkinserted[$reference];
+                    $data[$property] = $fkinserted[$reference];
+                }
+                else
+                    $data[$property] = null;
+            }
         }
+
+        if (is_numeric($this->__id) && ($this->__id >= 0))
+            $data['id'] = $this->__id;
 
         $r = $this->__db->insert(get_class($this), $data);
 
@@ -217,19 +243,57 @@ class Model {
             throw new Exception('No id specified', 210);
     }
 
-    public function merge() {
+    public function merge($cond = null) {
+        dope("upd");
+        if (!$cond)
+            $cond = 'id = ' . $this->__id;
+
         $data = array();
+        $fkinserted = array();
+
+        // fetch the tables referenced as foreign key
+        // we insert this objects before to get their id
+        foreach ($this->__fklist as $reference => $fk) {
+            if ($this->$reference != null) {
+                if (!$this->$reference->exists($this->$reference->getId())) {
+                    $this->$reference->insert();
+                    $fkinserted[$reference] = $this->__db->getLastId();
+                }
+                else {
+                    $this->$reference->merge();
+                    $fkinserted[$reference] = $this->$reference->getId();
+                }
+
+                $data[$reference] = $this->$reference->getId();
+            }
+        }
 
         // data must be set through setProp, so we trust it's coherent
         // unless no data was inserted, in which case...
+
         foreach ($this->__model as $property => $attrib_list) {
             if (!in_array("null", $attrib_list) && empty($this->$property))
                 throw new Exception('Property cannot be null: ' . $property, 27);
 
-            $data[$property] = $this->$property;
+            if (reset($this->__model[$property]) != Model::TYPE_FOREIGNKEY)
+                $data[$property] = $this->$property;
+
+
+            // if it's a foreign key, we have the id from the previous loop
+            else {
+                if (array_key_exists($property, $data)) {
+                    $fkinserted[$reference];
+                    $data[$property] = $fkinserted[$reference];
+                }
+                else
+                    $data[$property] = null;
+            }
         }
 
-        $r = $this->__db->update(get_class($this), $data, 'id = ' . $this->__id);
+        if (is_numeric($this->__id) && ($this->__id > 0))
+            $data['id'] = $this->__id;
+
+        $r = $this->__db->update(get_class($this), $data, $cond);
 
         if (!$r)
             throw new Exception('Error updating this item', 29);

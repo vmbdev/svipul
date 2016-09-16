@@ -25,7 +25,7 @@ function endsWith($haystack, $needle) {
 }
 
 spl_autoload_register(function($class) {
-    // load the class files as the class are instantiated
+    // load the class files when the class is instantiated
     // necessary allow models to load other models
     // first check if it's in the root directory, then in lib, dbdrivers
     // and finally check if it's a controller or a model
@@ -65,10 +65,10 @@ $url_lang = (!empty($result['lang'])) ? $result['lang'] : null;
 $url_rest = (!empty($result['rest'])) ? $result['rest'] : $_SERVER['REQUEST_URI'];
 
 // session init
-new Session($db);
-Session::startSession($url_lang);
+$session = new Session($db);
+$session->startSession($url_lang);
 
-$lang = Session::getSessionLang();
+$lang = $session->getSessionLang();
 
 putenv("LANG=$lang");
 setlocale(LC_ALL, $lang . '.utf8');
@@ -76,5 +76,5 @@ bindtextdomain('messages', Config::$dirroot . "/app/lang/");
 bind_textdomain_codeset('messages', 'UTF-8');
 textdomain('messages');
 
-$maincontroller = new MainController($db, $url_rest);
-$maincontroller->run();
+$dispatcher = new Dispatcher($db, $url_rest);
+$dispatcher->run();

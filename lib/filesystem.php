@@ -37,4 +37,13 @@ class FileSystem {
 
         return $file;
     }
+
+    public static function getGlobalLayout() {
+        $file = Config::$dirroot . '/app/layout/layout.php';
+
+        if (!file_exists($file))
+            $file = null;
+
+        return $file;
+    }
 }

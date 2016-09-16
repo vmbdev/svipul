@@ -86,6 +86,14 @@ abstract class Module {
         return $this->model;
     }
 
+    public function getLayout() {
+        if (FileSystem::getModuleView($this->getModuleName(), 'layout'))
+            return FileSystem::getModuleView($this->getModuleName(), 'layout');
+
+        else
+            return false;
+    }
+
     public function getModuleName() {
         return substr(get_class($this), 0, -strlen('Controller'));
     }

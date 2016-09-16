@@ -36,6 +36,7 @@ class MySQLDriver extends Database {
 	}
 
 	public function modify($query, $params = null) {
+        dope($params);
 		$q = $this->conn->prepare($query);
 		return $q->execute($params);
 	}
@@ -46,6 +47,7 @@ class MySQLDriver extends Database {
             . ($limit ? ' LIMIT ' . $limit : '')
             . (($offset && $limit) ? ' OFFSET ' . $offset: '')
             . ($order ? ' ORDER BY ' . $order : '');
+
         $r = $this->queryAll($q);
 
         // more than 1 row => array of arrays
@@ -71,7 +73,7 @@ class MySQLDriver extends Database {
         $set = implode(',', $set);
 
         $q = 'UPDATE ' . $table . ' SET ' . $set . ($where ? ' WHERE ' . $where : '');
-        dope($q);
+
         return $this->modify($q, $values);
     }
 
@@ -91,6 +93,14 @@ class MySQLDriver extends Database {
 
     public function getLastId() {
         return $this->conn->lastInsertId();
+    }
+
+    public function quote($string) {
+        return $this->conn->quote($string);
+    }
+
+    public function now() {
+        return date('Y-m-d H:i:s');
     }
 
 }
