@@ -244,7 +244,6 @@ class Model {
     }
 
     public function merge($cond = null) {
-        dope("upd");
         if (!$cond)
             $cond = 'id = ' . $this->__id;
 

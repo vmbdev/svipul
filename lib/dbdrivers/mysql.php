@@ -36,7 +36,6 @@ class MySQLDriver extends Database {
 	}
 
 	public function modify($query, $params = null) {
-        dope($params);
 		$q = $this->conn->prepare($query);
 		return $q->execute($params);
 	}
