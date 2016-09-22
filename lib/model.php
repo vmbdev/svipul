@@ -24,8 +24,13 @@ class Model {
     protected $__model, $__db;
     private $__id;
 
-    function __construct($db) {
-        $this->__db = $db;
+    function __construct($db = null) {
+        if (!$db)
+            $this->__db = ResManager::getDatabase();
+
+        else
+            $this->__db = $db;
+
         $this->__fklist = array();
         $this->createModel();
     }
@@ -151,6 +156,33 @@ class Model {
         }
     }
 
+    public function findByParams(array $data) {
+        if (is_array($data)) {
+            $cond = implode('=? AND ', array_keys($data)) . '=?';
+            $r = $this->__db->select(get_class($this), '*', $cond, 1, null, null, array_values($data));
+
+            if (empty($r))
+                throw new Exception('No data found', 25);
+
+            else {
+                foreach ($r as $property => $value) {
+                    if (array_key_exists($property, $this->__model) && (reset($this->__model[$property]) != Model::TYPE_FOREIGNKEY))
+                        $this->$property = $value;
+                }
+
+                // fetch the tables referenced as foreign key
+                foreach ($this->__fklist as $reference => $fk) {
+                    if ($r[$reference] != null) {
+                        $this->$reference = new $fk($this->__db);
+                        $this->$reference->findById($r[$reference]);
+                    }
+                }
+
+                $this->__id = $r['id'];
+            }
+        }
+    }
+
     public function findById($id) {
         if (is_numeric($id)) {
             try {
@@ -245,7 +277,7 @@ class Model {
 
     public function merge($cond = null) {
         if (!$cond)
-            $cond = 'id = ' . $this->__id;
+            $cond['id'] = $this->__id;
 
         $data = array();
         $fkinserted = array();

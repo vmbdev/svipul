@@ -27,11 +27,4 @@ class Config {
 		return hash('sha256', $password . hash('sha256', Config::$salt));
 	}
 
-	static function generateUserPath($id, $file=null, $isdir=false) {
-		return Config::$userPath . '/' . $id . '/' . ltrim($file, '/') . ($isdir?'/':'');
-	}
-
-	static function generateUserDir($id, $file=null, $isdir=false) {
-		return Config::$userDir . '/' . $id . '/' . ltrim($file, '/') . ($isdir?'/':'');
-	}
 }

@@ -5,8 +5,12 @@ class Dispatcher {
     private $content; // vwr
     private $has_controller; // module is not static
 
-    function __construct($db, $uri) {
-        $this->db = $db;
+    function __construct($db = null, $uri) {
+        if (!$db)
+            $this->__db = ResManager::getDatabase();
+
+        else
+            $this->__db = $db;
 
         // get the module name from the URL
         $uri_model = '#^' . Config::$wwwroot . '/(?P<match>\w+)(?P<rest>/\S+)?#';
@@ -57,7 +61,7 @@ class Dispatcher {
     }
 
     private function prepareContent() {
-        $this->content['module'] = $this->module;
+        $this->content['controller'] = $this->module;
         $this->content['module_name'] = $this->module_name;
     }
 

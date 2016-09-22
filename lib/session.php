@@ -28,9 +28,9 @@ class Session extends Model {
 
 	function createSessionData() {
         try {
-            $this->find('hash = ' . $this->__db->quote($this->hash));
+            $this->findByParams(['hash' => $this->hash]);
             $this->last_use = $this->__db->now();
-            $this->merge('hash = ' . $this->__db->quote($this->hash));
+            $this->merge(['hash' => $this->hash]);
 
         } catch (Exception $e) {
             if (!$this->lang)
@@ -38,11 +38,18 @@ class Session extends Model {
 
             $this->insert();
         } finally {
-    		    $this->sessionExists = true;
+		    $this->sessionExists = true;
         }
 	}
 
-	function closeSession() {
+    function login($user) {
+        if (get_class($user) === 'User') {
+            $this->user = $user;
+            $this->merge();
+        }
+    }
+
+	function close() {
         try {
             $this->delete();
         } catch(Exception $e) {
@@ -53,4 +60,5 @@ class Session extends Model {
     function getSessionLang() {
         return $this->lang;
     }
+
 }

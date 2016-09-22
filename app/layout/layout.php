@@ -7,8 +7,7 @@
         <meta name="description" content="">
         <meta name="author" content="">
 
-        <link rel="stylesheet" href="/app/layout/css/bootstrap.min.css" integrity="sha384-2hfp1SzUoho7/TsGGGDaFdsuuDL0LX2hnUp6VkX3CUQ2K4K+xjboZdsXyp4oUHZj" crossorigin="anonymous">
-
+        <link rel="stylesheet" href="/app/layout/css/bootstrap.min.css">
         <link href="/app/layout/css/style.css" rel="stylesheet" type="text/css">
     </head>
 
@@ -32,15 +31,17 @@
 
             <ul class="nav navbar-nav pull-xs-right">
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Login</a>
+                    <a class="nav-link" href="/user/login">Login</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Registro</a>
+                    <a class="nav-link" href="/user/register">Registro</a>
                 </li>
             </ul>
         </nav>
 
-        <?= $view_content ?>
+        <div id="maincontainer">
+            <?= $view_content ?>
+        </div>
 
         <footer class="footer" id="main">
             <div class="container text-right">
