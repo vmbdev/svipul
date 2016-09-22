@@ -3,10 +3,16 @@
 abstract class Module {
 	protected $db, $content, $params, $action, $function, $view, $content_vars, $router;
 
-	function __construct($db, $uri = null) {
-		$this->db = $db;
+	function __construct($db = null, $uri = null) {
+        if (!$db)
+            $this->__db = ResManager::getDatabase();
+
+        else
+            $this->__db = $db;
+
         $this->getParamsFromUri($uri);
         $this->content = array();
+        $this->errors = array();
         $this->router = new Router();
 
         if (isset($this->content_vars) && is_array($this->content_vars))
@@ -16,8 +22,6 @@ abstract class Module {
         if (class_exists($modelclass))
             $this->model = new $modelclass($db);
 	}
-
-	abstract public function run();
 
     public function getParamsFromUri($uri) {
         $param_list = array_values(array_filter(explode('/', $uri)));
@@ -78,6 +82,10 @@ abstract class Module {
         return $this->params;
     }
 
+    public function getParam($param) {
+        return ($this->params[$param] ? $this->params[$param] : null);
+    }
+
     public function getView() {
         return $this->view;
     }
@@ -110,4 +118,21 @@ abstract class Module {
     public function useCustomLayout() {
         return FileSystem::getModuleView(get_class($this), 'layout');
     }
+
+    public function addError($code, $msg) {
+        $this->errors[$code] = $msg;
+    }
+
+    public function getError($code) {
+        if (is_numeric($code) && ($code < count($this->errors)))
+            return ($this->errors[$code] ? $this->errors[$code] : null);
+
+        else
+            return false;
+    }
+
+    public function areErrors() {
+        return !empty($this->errors);
+    }
+
 }

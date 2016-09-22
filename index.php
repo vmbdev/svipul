@@ -52,8 +52,6 @@ spl_autoload_register(function($class) {
 
 });
 
-// db init
-$db = new MySQLDriver(Config::$dbhost, Config::$dbname, Config::$dbuser, Config::$dbpasswd);
 
 // grab lang from url (if present)
 // i.e. http://localhost/en_GB/news/whatever
@@ -64,11 +62,16 @@ preg_match($url_lang_exp, $_SERVER['REQUEST_URI'], $result);
 $url_lang = (!empty($result['lang'])) ? $result['lang'] : null;
 $url_rest = (!empty($result['rest'])) ? $result['rest'] : $_SERVER['REQUEST_URI'];
 
+// db init
+$db = new MySQLDriver(Config::$dbhost, Config::$dbname, Config::$dbuser, Config::$dbpasswd);
+
 // session init
 $session = new Session($db);
 $session->startSession($url_lang);
-
 $lang = $session->getSessionLang();
+
+ResManager::setSession($session);
+ResManager::setDatabase($db);
 
 putenv("LANG=$lang");
 setlocale(LC_ALL, $lang . '.utf8');

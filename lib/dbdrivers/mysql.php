@@ -40,14 +40,14 @@ class MySQLDriver extends Database {
 		return $q->execute($params);
 	}
 
-    public function select($table, $fields = '*', $where = null, $limit = null, $order = null, $offset = null) {
+    public function select($table, $fields = '*', $where = null, $limit = null, $order = null, $offset = null, $params = null) {
         $q = 'SELECT ' . $fields . ' FROM ' . $table
             . ($where ? ' WHERE ' . $where : '')
             . ($limit ? ' LIMIT ' . $limit : '')
             . (($offset && $limit) ? ' OFFSET ' . $offset: '')
             . ($order ? ' ORDER BY ' . $order : '');
 
-        $r = $this->queryAll($q);
+        $r = $this->queryAll($q, $params);
 
         // more than 1 row => array of arrays
         return ((($limit > 1) && (!empty($r))) ? $r : current($r));
@@ -62,18 +62,26 @@ class MySQLDriver extends Database {
         return $this->modify($q, $values);
     }
 
-    public function update($table, array $data, $where = null) {
+    public function update($table, array $data, $cond = null, $where = null) {
+        if ($cond) {
+            $cond_values = array_values($cond);
+            $cond = implode('=? AND ', array_keys($cond)) . '=?';
+        }
+
         $set = array();
-        $values = array_values($data);
 
         foreach (array_keys($data) as $column)
             $set[] = $column . '=?';
 
         $set = implode(',', $set);
 
-        $q = 'UPDATE ' . $table . ' SET ' . $set . ($where ? ' WHERE ' . $where : '');
+        $q = 'UPDATE ' . $table . ' SET ' . $set .
+             (($where || $cond) ? ' WHERE ' : '') . ($cond ? $cond : '') .
+             (($where && $cond) ? ' AND ' : '') . ($where ? $where : '');
 
-        return $this->modify($q, $values);
+        $params = array_values($data);
+
+        return $this->modify($q, ($cond ? array_merge($params, $cond_values) : $params));
     }
 
     public function delete($table, $id = null, $where = null) {

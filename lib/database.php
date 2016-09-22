@@ -17,7 +17,7 @@ abstract class Database {
     // CRUD operations
     abstract public function select($table, $fields = '*', $where = null, $order = null, $limit = null, $offset = null);
     abstract public function insert($table, array $data);
-    abstract public function update($table, array $data, $where = null);
+    abstract public function update($table, array $data, $cond = null, $where = null);
     abstract public function delete($table, $where = null);
 
     // others
