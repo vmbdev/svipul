@@ -19,8 +19,10 @@ abstract class Module {
             $this->setContentVars($this->content_vars);
 
         $modelclass = $this->getModuleName();
-        if (class_exists($modelclass))
+        if (class_exists($modelclass)) {
             $this->model = new $modelclass($db);
+            $this->content['model'] = $this->model;
+        }
 	}
 
     public function getParamsFromUri($uri) {
@@ -108,7 +110,7 @@ abstract class Module {
 
     public function setContentVars($vars) {
         foreach ($vars as $var)
-        $this->content[$var] = false;
+            $this->content[$var] = false;
     }
 
     public function getContent() {

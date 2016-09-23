@@ -1,4 +1,7 @@
 <?php
+// resumen/abstract -1
+// requisitos incluidos en la situación del mercado
+// + diagrama de caso de uso
 
 class UserController extends Module {
     public function __construct($db, $uri = null) {
@@ -15,7 +18,10 @@ class UserController extends Module {
 
             $user = new User();
             try {
-                $user->findByParams(['email' => $email, 'password' => Config::generatePassword($password)]);
+                $user->findByParams([
+                    'email' => $email,
+                    'password' => Config::generatePassword($password)
+                ]);
                 ResManager::getSession()->login($user);
                 $this->content['loggedIn'] = true;
             } catch (Exception $e) {
