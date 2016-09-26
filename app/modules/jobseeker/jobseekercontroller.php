@@ -4,6 +4,8 @@ class JobseekerController extends Module {
     public function __construct($db, $uri = null) {
         parent::__construct($db, $uri);
 
+        $this->route->addRoute('show', 'showProfile', 'showprofile');
+        $this->route->addRoute('edit', 'editProfile', 'editprofile');
     }
 
     public function run() {

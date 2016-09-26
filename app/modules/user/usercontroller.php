@@ -1,7 +1,4 @@
 <?php
-// resumen/abstract -1
-// requisitos incluidos en la situación del mercado
-// + diagrama de caso de uso
 
 class UserController extends Module {
     public function __construct($db, $uri = null) {

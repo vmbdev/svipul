@@ -5,6 +5,7 @@ abstract class Database {
     const ORDER_ASC = 'ASC';
     const ORDER_DESC = 'DESC';
 
+    abstract public function connect($host, $db, $user, $password);
 	abstract public function disconnect();
 
     // queries that return data

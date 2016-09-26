@@ -1,6 +1,15 @@
 <?php
 
-class FileSystem {
+abstract class FileSystem {
+    public static function getGlobalLayout() {
+        $file = Config::$dirroot . '/app/layout/layout.php';
+
+        if (!file_exists($file))
+            $file = null;
+
+        return $file;
+    }
+
     public static function getModulePath($module) {
         $module = strtolower($module);
         $path = Config::$dirroot . '/app/modules/' . $module;
@@ -20,15 +29,6 @@ class FileSystem {
         return $file;
     }
 
-    public static function getModuleView($module, $view=null) {
-        $file = self::getModulePath($module) . '/view/' . ($view?$view:'default') . '.php';
-
-        if (!file_exists($file))
-            $file = null;
-
-        return $file;
-    }
-
     public static function getModuleModel($module) {
         $file = self::getModulePath($module) . '/' . strtolower($module) . '.php';
 
@@ -38,8 +38,8 @@ class FileSystem {
         return $file;
     }
 
-    public static function getGlobalLayout() {
-        $file = Config::$dirroot . '/app/layout/layout.php';
+    public static function getModuleView($module, $view=null) {
+        $file = self::getModulePath($module) . '/view/' . ($view?$view:'default') . '.php';
 
         if (!file_exists($file))
             $file = null;

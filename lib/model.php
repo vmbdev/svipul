@@ -53,6 +53,18 @@ class Model {
         }
     }
 
+    public function getId() {
+        return $this->__id;
+    }
+
+    public function getAttrib($prop) {
+        if (isset($this->$__model[$prop]))
+            return $this->$__model[$prop];
+
+        else
+            throw new Exception("Property does not exists under model", 20);
+    }
+
     public function getProp($prop) {
         if (isset($this->$prop))
             return $this->$prop;
@@ -162,7 +174,7 @@ class Model {
             $r = $this->__db->select(get_class($this), '*', $cond, 1, null, null, array_values($data));
 
             if (empty($r))
-                throw new Exception('No data found', 25);
+                throw new Exception('No data found', 205);
 
             else {
                 foreach ($r as $property => $value) {
@@ -197,6 +209,14 @@ class Model {
 
         else
             throw new Exception('ID must be numeric', 26);
+    }
+
+    public static function findAll($cond = null) {
+
+    }
+
+    public static function findAllByParams(array $data) {
+
     }
 
     public function exists($id) {
@@ -262,19 +282,6 @@ class Model {
             throw new Exception('Error inserting the new item', 28);
     }
 
-    public function delete($id = null) {
-        // can delete only if id is provided
-        // or if findById was called successfully
-        if (!$id && $this->__id)
-            $id = $this->__id;
-
-        if ($id)
-            $this->__db->delete(get_class($this), $id);
-
-        else
-            throw new Exception('No id specified', 210);
-    }
-
     public function merge($cond = null) {
         if (!$cond)
             $cond['id'] = $this->__id;
@@ -330,7 +337,16 @@ class Model {
             throw new Exception('Error updating this item', 29);
     }
 
-    public function getId() {
-        return $this->__id;
+    public function delete($id = null) {
+        // can delete only if id is provided
+        // or if findById was called successfully
+        if (!$id && $this->__id)
+            $id = $this->__id;
+
+        if ($id)
+            $this->__db->delete(get_class($this), $id);
+
+        else
+            throw new Exception('No id specified', 210);
     }
 }

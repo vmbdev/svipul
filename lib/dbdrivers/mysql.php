@@ -2,18 +2,13 @@
 
 class MySQLDriver extends Database {
 
-	function __construct($host, $db, $user, $password) {
+	public function connect($host, $db, $user, $password) {
 		if (!isset($conn)) {
-			try {
-				$this->conn = new PDO("mysql:host=$host;dbname=$db", $user, $password,
-										array(PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8'));
-				$this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-				$this->conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
-			} catch (PDOException $e) {
-				return false;
-			}
+			$this->conn = new PDO("mysql:host=$host;dbname=$db", $user, $password,
+								array(PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8'));
+            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			$this->conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
 		}
-		return true;
 	}
 
 	public function disconnect() {
