@@ -3,6 +3,10 @@
 class ResManager {
     protected static $session, $db;
 
+    public static function getSession() {
+        return self::$session;
+    }
+
     public static function setSession($session) {
         if (!empty(self::$session)) {
             if ($session != self::$session)
@@ -15,8 +19,8 @@ class ResManager {
         return true;
     }
 
-    public static function getSession() {
-        return self::$session;
+    public static function getDatabase() {
+        return self::$db;
     }
 
     public static function setDatabase($db) {
@@ -29,9 +33,5 @@ class ResManager {
 
         self::$db = $db;
         return true;
-    }
-
-    public static function getDatabase() {
-        return self::$db;
     }
 }

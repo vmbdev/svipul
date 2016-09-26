@@ -63,12 +63,13 @@ $url_lang = (!empty($result['lang'])) ? $result['lang'] : null;
 $url_rest = (!empty($result['rest'])) ? $result['rest'] : $_SERVER['REQUEST_URI'];
 
 // db init
-$db = new MySQLDriver(Config::$dbhost, Config::$dbname, Config::$dbuser, Config::$dbpasswd);
+$db = new MySQLDriver();
+$db->connect(Config::$dbhost, Config::$dbname, Config::$dbuser, Config::$dbpasswd);
 
 // session init
 $session = new Session($db);
 $session->startSession($url_lang);
-$lang = $session->getSessionLang();
+$lang = $session->getLang();
 
 ResManager::setSession($session);
 ResManager::setDatabase($db);

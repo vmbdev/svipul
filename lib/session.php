@@ -7,7 +7,7 @@ class Session extends Model {
         'lang' => [ Model::TYPE_STRING, 'max: 5']
     ];
 
-    function __construct($db) {
+    function __construct($db = null) {
         if (class_exists('User') && is_subclass_of('User', 'Model'))
             $this->__model['user'] = [ Model::TYPE_FOREIGNKEY, 'user', 'null' ];
 
@@ -23,10 +23,6 @@ class Session extends Model {
 		if ($lang && array_key_exists($lang, Config::$languages))
 			$this->lang = $lang;
 
-		$this->createSessionData();
-	}
-
-	function createSessionData() {
         try {
             $this->findByParams(['hash' => $this->hash]);
             $this->last_use = $this->__db->now();
@@ -38,9 +34,17 @@ class Session extends Model {
 
             $this->insert();
         } finally {
-		    $this->sessionExists = true;
+            $this->sessionExists = true;
         }
 	}
+
+    function close() {
+        try {
+            $this->delete();
+        } catch(Exception $e) {
+            return;
+        }
+    }
 
     function login($user) {
         if (get_class($user) === 'User') {
@@ -49,15 +53,7 @@ class Session extends Model {
         }
     }
 
-	function close() {
-        try {
-            $this->delete();
-        } catch(Exception $e) {
-            return;
-        }
-	}
-
-    function getSessionLang() {
+    function getLang() {
         return $this->lang;
     }
 
