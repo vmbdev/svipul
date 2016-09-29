@@ -1,12 +1,11 @@
 <?php
 
 /*  params:
-        pk
         fk: table
         null
         min: value or length
         max: value or length
-        url, email
+        url, email, ...
  */
 
 // $model = array(
@@ -23,6 +22,7 @@ class Model {
 
     protected $__model, $__db;
     private $__id;
+    static private $__fklist;
 
     function __construct($db = null) {
         if (!$db)
@@ -31,7 +31,7 @@ class Model {
         else
             $this->__db = $db;
 
-        $this->__fklist = array();
+        Self::$__fklist[get_called_class()] = array();
         $this->createModel();
     }
 
@@ -42,7 +42,7 @@ class Model {
 
                 if (class_exists($foreignclass)) {
                     $this->$property = new $foreignclass($this->__db);
-                    $this->__fklist[$property] = $foreignclass;
+                    Self::$__fklist[get_called_class()][$property] = $foreignclass;
                 }
                 else
                     throw new Exception("Foreign key points to a non existing class: " . $foreignclass);
@@ -66,82 +66,104 @@ class Model {
     }
 
     public function getProp($prop) {
-        if (isset($this->$prop))
+        if (property_exists($this, $prop))
             return $this->$prop;
 
         else
-            throw new Exception("Property does not exists under model", 20);
+            throw new Exception("Property does not exists under model: " . $prop, 20);
     }
 
     public function setProp($prop, $value) {
         if (property_exists($this, $prop)) {
             $attrib_list = $this->__model[$prop];
 
-            if (!in_array('null', $attrib_list) && $value == null)
-                throw new Exception('Type is not coherent: cannot be NULL', 21);
-
-            $type = array_shift($attrib_list);
-
-            if ($type == Model::TYPE_INT) {
-                $options = array();
-
-                foreach ($attrib_list as $attrib) {
-                    // keys in the format of param: value
-                    $pv = explode(":", $attrib);
-                    $p = current($pv); // the param
-                    $v = next($pv); // the value
-
-                    if (($p == 'min') && is_numeric($v))
-                        $options['options']['min_range'] = $v;
-
-                    else if (($p == 'max') && is_numeric($v))
-                        $options['options']['max_range'] = $v;
-                }
-
-                if (!filter_var($value, FILTER_VALIDATE_INT, $options))
-                    throw new Exception("Type is not coherent: INT", 22);
-            }
-
-            else if (($type == Model::TYPE_FLOAT) && !filter_var($value, FILTER_VALIDATE_FLOAT))
-                throw new Exception("Type is not coherent : FLOAT", 23);
-
-            else if ($type == Model::TYPE_STRING) {
-                $options = array();
-
-                foreach ($attrib_list as $attrib) {
-                    $pv = explode(":", $attrib);
-                    $p = current($pv);
-                    $v = next($pv);
-
-                    if (($p == 'min') && is_numeric($v)) {
-                        if (strlen($value) < $v)
-                            throw new Exception("Type is not coherent: STRING minimum lenght is " . $v, 24);
-                    }
-
-                    else if (($p == 'max') && is_numeric($v)) {
-                        if (strlen($value) > $v)
-                            $value = substr($value, 0, $v);
-                    }
-
-                }
-            }
-
-            else if ($type == Model::TYPE_DATE) {
-                $date = DateTime::createFromFormat('d/m/Y H:i:s', $value);
-                $value = $date->format('Y-m-d H:i:s');
-            }
-
-            else if ($type == Model::TYPE_FOREIGNKEY) {
-                $foreignclass = current($attrib_list);
-
-                if (class_exists($foreignclass))
-                    $value = new $foreignclass($this->__db);
+            if ($value == null) {
+                if (!in_array('null', $attrib_list))
+                    throw new Exception('Type is not coherent: cannot be NULL', 21);
                 else
-                    throw new Exception("Foreign key points to a non existing class: " . $foreignclass);
+                    $this->$prop = null;
             }
 
-            $this->$prop = $value;
+            else {
+                $type = array_shift($attrib_list);
+
+                if ($type == Model::TYPE_INT) {
+                    $options = array();
+
+                    foreach ($attrib_list as $attrib) {
+                        // keys in the format of param: value
+                        $pv = explode(":", $attrib);
+                        $p = current($pv); // the param
+                        $v = next($pv); // the value
+
+                        if (($p == 'min') && is_numeric($v))
+                            $options['options']['min_range'] = $v;
+
+                        else if (($p == 'max') && is_numeric($v))
+                            $options['options']['max_range'] = $v;
+                    }
+
+                    // if $value = 0, filter_var will return false, but not 0 as type
+                    if ((filter_var($value, FILTER_VALIDATE_INT, $options) === false) && (filter_var($value, FILTER_VALIDATE_INT, $options) === 0))
+                        throw new Exception("Type is not coherent: INT", 22);
+                }
+
+                else if (($type == Model::TYPE_FLOAT) && !filter_var($value, FILTER_VALIDATE_FLOAT))
+                    throw new Exception("Type is not coherent : FLOAT", 23);
+
+                else if ($type == Model::TYPE_STRING) {
+                    $options = array();
+
+                    foreach ($attrib_list as $attrib) {
+                        $pv = explode(":", $attrib);
+                        $p = current($pv);
+                        $v = next($pv);
+
+                        if (($p == 'min') && is_numeric($v)) {
+                            if (strlen($value) < $v)
+                                throw new Exception("Type is not coherent: STRING minimum lenght is " . $v, 24);
+                        }
+
+                        else if (($p == 'max') && is_numeric($v)) {
+                            if (strlen($value) > $v)
+                                $value = substr($value, 0, $v);
+                        }
+
+                    }
+                }
+
+                else if ($type == Model::TYPE_DATE) {
+                    $date = DateTime::createFromFormat('d/m/Y H:i:s', $value);
+                    $value = $date->format('Y-m-d H:i:s');
+                }
+
+                else if ($type == Model::TYPE_FOREIGNKEY) {
+                    $foreignclass = current($attrib_list);
+
+                    if (!class_exists($foreignclass))
+                        throw new Exception("Foreign key points to a non existing class: " . $foreignclass);
+                }
+
+                $this->$prop = $value;
+            }
         }
+    }
+
+    public static function row2obj(&$obj, $row) {
+        foreach ($row as $property => $value) {
+            if (array_key_exists($property, $obj->__model) && (reset($obj->__model[$property]) != Model::TYPE_FOREIGNKEY))
+                $obj->$property = $value;
+        }
+
+        // fetch the tables referenced as foreign key
+        foreach (Self::$__fklist[get_called_class()] as $reference => $fk) {
+            if ($row[$reference] != null) {
+                $obj->$reference = new $fk($obj->__db);
+                $obj->$reference->findById($row[$reference]);
+            }
+        }
+
+        $obj->__id = $row['id'];
     }
 
     public function find($cond = null) {
@@ -150,22 +172,8 @@ class Model {
         if (empty($r))
             throw new Exception('No data found', 25);
 
-        else {
-            foreach ($r as $property => $value) {
-                if (array_key_exists($property, $this->__model) && (reset($this->__model[$property]) != Model::TYPE_FOREIGNKEY))
-                    $this->$property = $value;
-            }
-
-            // fetch the tables referenced as foreign key
-            foreach ($this->__fklist as $reference => $fk) {
-                if ($r[$reference] != null) {
-                    $this->$reference = new $fk($this->__db);
-                    $this->$reference->findById($r[$reference]);
-                }
-            }
-
-            $this->__id = $r['id'];
-        }
+        else
+            Self::row2obj($this, $r);
     }
 
     public function findByParams(array $data) {
@@ -183,7 +191,7 @@ class Model {
                 }
 
                 // fetch the tables referenced as foreign key
-                foreach ($this->__fklist as $reference => $fk) {
+                foreach (Self::$__fklist[get_called_class()] as $reference => $fk) {
                     if ($r[$reference] != null) {
                         $this->$reference = new $fk($this->__db);
                         $this->$reference->findById($r[$reference]);
@@ -211,8 +219,25 @@ class Model {
             throw new Exception('ID must be numeric', 26);
     }
 
-    public static function findAll($cond = null) {
+    public static function findAll($cond = null, $db = null) {
+        if ($db == null)
+            $db = ResManager::getDatabase();
 
+        $r = $db->select(get_called_class(), '*', $cond);
+
+        if (empty($r))
+            throw new Exception('No data found', 25);
+
+        else {
+            $results = array();
+            foreach ($r as $row) {
+                $mod = new static($db);
+                Self::row2obj($mod, $row);
+                $results[] = $mod;
+            }
+
+            return $results;
+        }
     }
 
     public static function findAllByParams(array $data) {
@@ -237,7 +262,7 @@ class Model {
 
         // fetch the tables referenced as foreign key
         // we insert this objects before to get their id
-        foreach ($this->__fklist as $reference => $fk) {
+        foreach (Self::$__fklist[get_called_class()] as $reference => $fk) {
             if ($this->$reference != null) {
                 if (!$this->$reference->exists($this->$reference->getId())) {
                     $this->$reference->insert();
@@ -291,7 +316,8 @@ class Model {
 
         // fetch the tables referenced as foreign key
         // we insert this objects before to get their id
-        foreach ($this->__fklist as $reference => $fk) {
+
+        foreach (Self::$__fklist[get_called_class()] as $reference => $fk) {
             if ($this->$reference != null) {
                 if (!$this->$reference->exists($this->$reference->getId())) {
                     $this->$reference->insert();

@@ -18,11 +18,10 @@ class MySQLDriver extends Database {
 	public function query($query, $params = null, $fetchAll = false) {
 		$q = $this->conn->prepare($query);
 		$q->execute($params);
-
 		if ($fetchAll)
 			return $q->fetchAll(PDO::FETCH_ASSOC);
 
-		elseif (preg_match('#^SELECT #i', $query))
+		else
 			return $q->fetch(PDO::FETCH_ASSOC);
 	}
 
@@ -41,11 +40,10 @@ class MySQLDriver extends Database {
             . ($limit ? ' LIMIT ' . $limit : '')
             . (($offset && $limit) ? ' OFFSET ' . $offset: '')
             . ($order ? ' ORDER BY ' . $order : '');
-
         $r = $this->queryAll($q, $params);
 
         // more than 1 row => array of arrays
-        return ((($limit > 1) && (!empty($r))) ? $r : current($r));
+        return ((($limit != 1) && (!empty($r))) ? $r : current($r));
     }
 
     public function insert($table, array $data) {

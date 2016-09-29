@@ -57,4 +57,8 @@ class Session extends Model {
         return $this->lang;
     }
 
+    function isLogged() {
+        return (property_exists($this, 'user') && ($this->user != null));
+    }
+
 }

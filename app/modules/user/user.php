@@ -6,6 +6,6 @@ class User extends Model {
         'name' => [ Model::TYPE_STRING ],
         'surname' => [ Model::TYPE_STRING ],
         'password' => [ Model::TYPE_STRING, 'max: 128' ],
-        'type' => [ Model::TYPE_INT ]
+        'type' => [ Model::TYPE_INT, 'min: 0', 'max: 1' ]
     ];
 }
