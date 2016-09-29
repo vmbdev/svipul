@@ -3,7 +3,6 @@
 class Dispatcher {
     private $db, $module_name, $module, $uri_rest;
     private $content; // vwr
-    private $has_controller; // module is not static
 
     function __construct($db = null, $uri) {
         if (!$db)
@@ -43,17 +42,15 @@ class Dispatcher {
                 if (is_subclass_of($this->module, 'Module')) {
                     $this->module->startController();
                     $function = $this->module->getFunction();
-                    $this->module->$function();
-                    $this->has_controller = true;
+
+                    if ($function && method_exists($this->module, $function))
+                        $this->module->$function();
+
                     $this->content = $this->module->getContent();
                 }
                 else // just as a security measure
                     $this->module = null;
             }
-
-            // if it's not instantiated, it's not a controller
-            if (!is_subclass_of($this->module, 'Module'))
-                $this->has_controller = false;
         }
 
         $this->prepareContent();
@@ -67,10 +64,8 @@ class Dispatcher {
 
     private function runViewer() {
         $view = $this->module->getView();
-        if (empty($view))
-            throw new Exception('No view associated to this action.', 300);
 
-        else {
+        if (!empty($view)) {
             if (!empty($this->content))
                 extract($this->content);
 

@@ -29,23 +29,23 @@ abstract class Module {
                 $this->action = 'default';
 
             else
-                throw new Exception('Controller Exception: Action does not exists', 10);
+                throw new Exception('Controller Exception: Action does not exists', 100);
         }
 
         $route = $this->router->getRoute($this->action);
 
         if (empty($route))
-            throw new Exception('Controller Exception: Action not in route', 11);
+            throw new Exception('Controller Exception: Action not in route', 101);
 
         // check if the function exists
         $this->function = $route['function'];
         if (!method_exists($this, $this->function))
-            throw new Exception('Controller Exception: Function does not exists', 12);
+            $this->function = null;
 
         // pass the viewer back to the dispatcher
         $this->view = FileSystem::getModuleView($this->getModuleName(), $route['view']);
         if (!$this->view)
-            throw new Exception('Controller Exception: View does not exists', 13);
+            $this->view = null;
     }
 
     public function getParamsFromUri($uri) {
