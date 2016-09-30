@@ -25,10 +25,7 @@
                     <a class="nav-link" href="/jobseeker/edit">Publica tu Currículum</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Encuentra nuevos empleados</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Acerca de...</a>
+                    <a class="nav-link" href="/company/list">Encuentra nuevos empleados</a>
                 </li>
             </ul>
 
@@ -36,7 +33,9 @@
                 <?php $session = ResManager::getSession(); ?>
                 <?php if ($session->isLogged()): ?>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Hola <?= $session->getProp('user')->getProp('name') ?></a>
+                        <a class="nav-link" href="
+                        <?= ($session->getProp('user')->getProp('type') == 0) ? '/jobseeker/edit' : '/company/edit' ?>
+                         ">Hola <?= $session->getProp('user')->getProp('name') ?></a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/user/logout">Salir</a>
@@ -64,7 +63,7 @@
 
         <footer class="footer" id="main">
             <div class="container text-right">
-                Made with Svipul Framework - 2016
+                Hecho con el framework del TFG de Borja Vides
             </div>
         </footer>
     </body>

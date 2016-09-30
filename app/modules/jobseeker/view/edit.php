@@ -1,6 +1,6 @@
 <?php if ($controller->getError(0)): ?>
     <div class="alert alert-danger" role="alert">
-        <strong>Error:</strong> <?= $controller->getError(0) ?>
+        <strong>Error:</strong> El usuario no está registrado o no es un solicitante.
     </div>
 
 <?php elseif ($controller->session->isLogged() && ($controller->session->getProp('user')->getProp('type') == 0)): ?>

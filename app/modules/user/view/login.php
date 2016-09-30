@@ -8,7 +8,6 @@
     <fieldset>
         <legend>Login</legend>
 
-        <!-- Text input-->
         <div class="form-control-lg row">
             <label class="col-md-4 form-control-label" for="email">Email</label>
             <div class="col-md-4">
@@ -16,7 +15,6 @@
             </div>
         </div>
 
-        <!-- Password input-->
         <div class="form-control-lg row">
             <label class="col-md-4 form-control-label" for="password">Password</label>
             <div class="col-md-4">
@@ -24,7 +22,6 @@
             </div>
         </div>
 
-        <!-- Button -->
         <div class="form-control-lg row">
             <label class="col-md-4 form-control-label" for="submit"></label>
             <div class="col-md-4">
