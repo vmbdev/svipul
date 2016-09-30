@@ -18,7 +18,7 @@
             <div class="form-control-lg row">
                 <label class="col-md-4 form-control-label" for="birthday">Fecha de nacimiento</label>
                 <div class="col-md-4">
-                    <input id="birthday" name="birthday" type="text" class="form-control-md form-input-md" value="<?= $model->getProp('birthday') ?>">
+                    <input id="birthday" name="birthday" type="text" placeholder="d/m/Y" class="form-control-md form-input-md" value="<?= $model->getProp('birthday') ?>">
                 </div>
             </div>
 
