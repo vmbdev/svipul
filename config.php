@@ -18,7 +18,7 @@ class Config {
                                     );
 
 	public static $defaultLanguage = 'en_GB';
-    public static $defaultModule = 'user';
+    public static $defaultModule = 'home';
 
 	public static $wwwroot = '';
 	public static $dirroot = 'c://svipul';

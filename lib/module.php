@@ -14,6 +14,7 @@ abstract class Module {
         $this->content = array();
         $this->errors = array();
         $this->router = new Router();
+        $this->session = ResManager::getSession();
 
         $modelclass = $this->getModuleName();
         if (class_exists($modelclass)) {
@@ -98,7 +99,7 @@ abstract class Module {
     }
 
     public function getParam($param) {
-        return ($this->params[$param] ? $this->params[$param] : null);
+        return (in_array($param, array_keys($this->params)) ? $this->params[$param] : null);
     }
 
     public function getModuleName() {
@@ -114,7 +115,7 @@ abstract class Module {
     }
 
     public function getError($code) {
-        if (is_numeric($code) && ($code < count($this->errors)))
+        if (is_numeric($code) && in_array($code, array_keys($this->errors)))
             return ($this->errors[$code] ? $this->errors[$code] : null);
 
         else
@@ -123,6 +124,10 @@ abstract class Module {
 
     public function existErrors() {
         return !empty($this->errors);
+    }
+
+    public function goto($url) {
+        header('Location: ' .$url);
     }
 
 }

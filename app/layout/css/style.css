@@ -6,3 +6,9 @@ footer#main {
     text-align: center;
     width: 100%;
 }
+
+#maincontainer {
+    margin: 0 auto;
+    padding-top: 30px;
+    width: 60%;
+}

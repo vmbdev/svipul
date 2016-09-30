@@ -149,7 +149,7 @@ class Model {
         }
     }
 
-    public static function row2obj(&$obj, $row) {
+    public static function row2obj($obj, $row) {
         foreach ($row as $property => $value) {
             if (array_key_exists($property, $obj->__model) && (reset($obj->__model[$property]) != Model::TYPE_FOREIGNKEY))
                 $obj->$property = $value;
@@ -184,22 +184,8 @@ class Model {
             if (empty($r))
                 throw new Exception('No data found', 205);
 
-            else {
-                foreach ($r as $property => $value) {
-                    if (array_key_exists($property, $this->__model) && (reset($this->__model[$property]) != Model::TYPE_FOREIGNKEY))
-                        $this->$property = $value;
-                }
-
-                // fetch the tables referenced as foreign key
-                foreach (Self::$__fklist[get_called_class()] as $reference => $fk) {
-                    if ($r[$reference] != null) {
-                        $this->$reference = new $fk($this->__db);
-                        $this->$reference->findById($r[$reference]);
-                    }
-                }
-
-                $this->__id = $r['id'];
-            }
+            else
+                Self::row2obj($this, $r);
         }
     }
 
@@ -219,11 +205,11 @@ class Model {
             throw new Exception('ID must be numeric', 26);
     }
 
-    public static function findAll($cond = null, $db = null) {
+    public static function findAll($cond = null, $limit = null, $offset = null, $db = null) {
         if ($db == null)
             $db = ResManager::getDatabase();
 
-        $r = $db->select(get_called_class(), '*', $cond);
+        $r = $db->select(get_called_class(), '*', $cond, $limit, null, $offset);
 
         if (empty($r))
             throw new Exception('No data found', 25);
@@ -240,8 +226,28 @@ class Model {
         }
     }
 
-    public static function findAllByParams(array $data) {
+    public static function findAllByParams(array $data, $limit = null, $offset = null, $db = null) {
+        if ($db == null)
+            $db = ResManager::getDatabase();
 
+        if (is_array($data)) {
+            $cond = implode('=? AND ', array_keys($data)) . '=?';
+            $r = $db->select(get_called_class(), '*', $cond, $limit, null, $offset, array_values($data));
+
+            if (empty($r))
+                throw new Exception('No data found', 25);
+
+            else {
+                $results = array();
+                foreach ($r as $row) {
+                    $mod = new static($db);
+                    Self::row2obj($mod, $row);
+                    $results[] = $mod;
+                }
+
+                return $results;
+            }
+        }
     }
 
     public function exists($id) {

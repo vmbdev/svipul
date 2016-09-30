@@ -9,6 +9,9 @@
 
         <link rel="stylesheet" href="/app/layout/css/bootstrap.min.css">
         <link href="/app/layout/css/style.css" rel="stylesheet" type="text/css">
+
+        <script src="/app/layout/javascript/jquery-3.1.0.min.js"></script>
+        <script src="/app/layout/javascript/bootstrap.min.js"></script>
     </head>
 
     <body>
@@ -19,7 +22,7 @@
                     <a class="nav-link" href="/">Inicio</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Publica tu Currículum</a>
+                    <a class="nav-link" href="/jobseeker/edit">Publica tu Currículum</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#">Encuentra nuevos empleados</a>
@@ -30,17 +33,33 @@
             </ul>
 
             <ul class="nav navbar-nav pull-xs-right">
-                <li class="nav-item">
-                    <a class="nav-link" href="/user/login">Login</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/user/register">Registro</a>
-                </li>
+                <?php $session = ResManager::getSession(); ?>
+                <?php if ($session->isLogged()): ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Hola <?= $session->getProp('user')->getProp('name') ?></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/user/logout">Salir</a>
+                    </li>
+                <?php else: ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/user/login">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/user/register">Registro</a>
+                    </li>
+                <?php endif; ?>
             </ul>
         </nav>
 
         <div id="maincontainer">
-            <?= $view_content ?>
+            <?php if (!empty($view_content)): ?>
+                <?= $view_content ?>
+            <?php else: ?>
+                <div class="alert alert-danger" role="alert">
+                    <strong>Error:</strong> Página no encontrada.
+                </div>
+            <?php endif; ?>
         </div>
 
         <footer class="footer" id="main">
@@ -48,8 +67,5 @@
                 Made with Svipul Framework - 2016
             </div>
         </footer>
-
-        <script src="/app/layout/javascript/jquery.min.js"></script>
-        <script src="/app/layout/javascript/bootstrap.min.js" integrity="sha384-VjEeINv9OSwtWFLAtmc4JCtEJXXBub00gtSnszmspDLCtC0I4z4nqz7rEFbIZLLU" crossorigin="anonymous"></script>
     </body>
 </html>

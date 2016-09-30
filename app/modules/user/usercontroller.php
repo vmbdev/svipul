@@ -20,8 +20,7 @@ class UserController extends Module {
                     'email' => $email,
                     'password' => Config::generatePassword($password)
                 ]);
-                ResManager::getSession()->login($user);
-                $this->content['loggedIn'] = true;
+                $this->session->login($user);
             } catch (Exception $e) {
                 $this->addError(0, 'Authentication failed');
             }
@@ -54,6 +53,7 @@ class UserController extends Module {
 
                     $newuser->setProp('user', $user);
                     $newuser->insert();
+
                     $this->content['registered'] = true;
                 } catch (Exception $e) {
                     $this->addError(1, 'Registration failed');
@@ -64,6 +64,6 @@ class UserController extends Module {
 
     public function logout() {
         ResManager::getSession()->close();
-        header('Location: /user/login');
+        $this->goto('/user/login');
     }
 }

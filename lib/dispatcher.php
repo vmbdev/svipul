@@ -63,27 +63,32 @@ class Dispatcher {
     }
 
     private function runViewer() {
-        $view = $this->module->getView();
+        if ($this->module && is_subclass_of($this->module, 'Module')) {
+            $view = $this->module->getView();
+            $customlayout = $this->module->getLayout();
+        }
+        else
+            $view = FileSystem::getModuleView($this->module_name, 'default');
+
+        // module has custom layout ?
+        if (!empty($customlayout))
+            $layout = $customlayout;
+        else if (FileSystem::getGlobalLayout())
+            $layout = FileSystem::getGlobalLayout();
+        else
+            $layout = null;
 
         if (!empty($view)) {
             if (!empty($this->content))
                 extract($this->content);
 
-            // module has custom layout ?
-            if ($this->module->getLayout())
-                $layout = $this->module->getLayout();
-            else if (FileSystem::getGlobalLayout())
-                $layout = FileSystem::getGlobalLayout();
-            else
-                $layout = null;
-
             ob_start();
             require_once($view);;
             $view_content = ob_get_clean();
-
-            if ($layout)
-                require_once($layout);
-
         }
+
+        if ($layout)
+            require_once($layout);
+
     }
 }
