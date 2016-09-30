@@ -133,7 +133,7 @@ class Model {
                 }
 
                 else if ($type == Model::TYPE_DATE) {
-                    $date = DateTime::createFromFormat('d/m/Y H:i:s', $value);
+                    $date = DateTime::createFromFormat('d/m/Y', $value);
                     $value = $date->format('Y-m-d H:i:s');
                 }
 
