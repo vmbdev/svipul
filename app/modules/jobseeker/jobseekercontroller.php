@@ -4,7 +4,6 @@ class JobseekerController extends Module {
     public function __construct($db, $uri = null) {
         parent::__construct($db, $uri);
 
-        $this->router->addRoute('show', 'show', 'show');
         $this->router->addRoute('edit', 'edit', 'edit');
     }
 
@@ -53,23 +52,5 @@ class JobseekerController extends Module {
                 $this->addError(1, 'The information introduced is not correct.');
             }
         }
-    }
-
-    public function show() {
-        if ($this->session->isLogged() && ($this->session->getProp('user')->getProp('type') == 1)) {
-            $tosee = $this->getParam('profile');
-
-            if (is_numeric($tosee)) {
-                try {
-                    $jobseeker = new Jobseeker();
-                    $jobseeker->findById($tosee);
-                    $this->content['jobseeker'] = $jobseeker;
-                } catch (Exception $e) {
-                    $this->addError(2, 'Profile not found');
-                }
-            }
-        }
-        else
-            $this->addError(3, 'Insufficient permissions');
     }
 }
