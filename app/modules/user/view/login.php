@@ -1,5 +1,5 @@
-<?php if (!empty($loggedIn)): ?>
-    Logged in successfully
+<?php if (ResManager::getSession()->isLogged()): ?>
+    <?php $controller->goto('/'); ?>
 <?php elseif ($controller->getError(0)): ?>
     Incorrect login info
 <?php endif; ?>

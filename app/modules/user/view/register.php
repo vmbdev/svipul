@@ -1,12 +1,16 @@
 <?php if (!empty($registered)): ?>
-    Registered successfully
+    <div class="alert alert-success" role="alert">
+        Registrado correctamente. Por favor, identifícate con tus nuevas credenciales.
+    </div>
 <?php elseif ($controller->getError(1)): ?>
-    Incorrect info
+    <div class="alert alert-danger" role="alert">
+        <strong>Error:</strong> Información incorrecta.
+    </div>
 <?php endif; ?>
 
 <form class="form-horizontal" action="/user/register" method="POST">
     <fieldset>
-        <legend>Login</legend>
+        <legend>Registro</legend>
 
         <div class="form-control-lg row">
             <label class="col-md-4 form-control-label" for="email">Email</label>
