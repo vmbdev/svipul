@@ -1,11 +1,5 @@
 <?php
 
-function dope($var) {
-    echo "<pre>";
-    var_dump($var);
-    echo "</pre>";
-}
-
 ini_set('display_errors', 1);
 ini_set('short_open_tag', 1);
 ini_set('session.use_trans_sid', 0);
