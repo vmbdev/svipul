@@ -9,40 +9,40 @@ ini_set('session.session.hash_bits_per_character', 5);
 header('Content-Type: text/html; charset=UTF-8');
 
 function startsWith($haystack, $needle) {
-    // search backwards starting from haystack length characters from the end
-    return $needle === "" || strrpos($haystack, $needle, -strlen($haystack)) !== false;
+	// search backwards starting from haystack length characters from the end
+	return $needle === "" || strrpos($haystack, $needle, -strlen($haystack)) !== false;
 }
 
 function endsWith($haystack, $needle) {
-    // search forward starting from end minus needle length characters
-    return $needle === "" || (($temp = strlen($haystack) - strlen($needle)) >= 0 && strpos($haystack, $needle, $temp) !== false);
+	// search forward starting from end minus needle length characters
+	return $needle === "" || (($temp = strlen($haystack) - strlen($needle)) >= 0 && strpos($haystack, $needle, $temp) !== false);
 }
 
 spl_autoload_register(function($class) {
-    // load the class files when the class is instantiated
-    // necessary allow models to load other models
-    // first check if it's in the root directory, then in lib, dbdrivers
-    // and finally check if it's a controller or a model
-    if (file_exists('./' . $class . '.php'))
-        include_once('./' . $class . '.php');
+	// load the class files when the class is instantiated
+	// necessary allow models to load other models
+	// first check if it's in the root directory, then in lib, dbdrivers
+	// and finally check if it's a controller or a model
+	if (file_exists('./' . $class . '.php'))
+		include_once('./' . $class . '.php');
 
-    else if (file_exists('lib/' . $class . '.php'))
-        include_once('lib/' . $class . '.php');
+	else if (file_exists('lib/' . $class . '.php'))
+		include_once('lib/' . $class . '.php');
 
-    else if (endsWith($class, 'Driver')) {
-        $classname = substr($class, 0, -strlen('Driver'));
-        if (file_exists('lib/dbdrivers/' . $classname . '.php'))
-            include_once('lib/dbdrivers/' . $classname . '.php');
-    }
+	else if (endsWith($class, 'Driver')) {
+		$classname = substr($class, 0, -strlen('Driver'));
+		if (file_exists('lib/dbdrivers/' . $classname . '.php'))
+			include_once('lib/dbdrivers/' . $classname . '.php');
+	}
 
-    else if (endsWith($class, 'Controller')) {
-        $classname = substr($class, 0, -strlen('Controller'));
-        if (FileSystem::getModuleController($classname))
-            include_once(FileSystem::getModuleController($classname));
-    }
+	else if (endsWith($class, 'Controller')) {
+		$classname = substr($class, 0, -strlen('Controller'));
+		if (FileSystem::getModuleController($classname))
+			include_once(FileSystem::getModuleController($classname));
+	}
 
-    else if (FileSystem::getModuleModel($class))
-        include_once(FileSystem::getModuleModel($class));
+	else if (FileSystem::getModuleModel($class))
+		include_once(FileSystem::getModuleModel($class));
 
 });
 
